@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Buttons from './Buttons';
 
 const Calculator = () => {
 	const [prevNum, setPrev] = useState('');
@@ -6,7 +7,14 @@ const Calculator = () => {
 	const [operator, setOperator] = useState('');
 	const [waitingForNewNumber, setWaitingForNewNumber] = useState(false);
 
-	return <></>;
+	return (
+		<div className="calculator-container">
+			<Buttons
+				onNumberClick={handleNumberClick}
+				onOperatorClick={handleOperatorClick}
+			/>
+		</div>
+	);
 };
 
 export default Calculator;
