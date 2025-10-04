@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Buttons from './Buttons';
+import Screen from './Screen';
 
 const Calculator = () => {
 	const [prevNum, setPrev] = useState('');
@@ -9,6 +10,7 @@ const Calculator = () => {
 
 	return (
 		<div className="calculator-container">
+			<Screen displayNumber={curNum} />
 			<Buttons
 				onNumberClick={handleNumberClick}
 				onOperatorClick={handleOperatorClick}
