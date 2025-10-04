@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import Calculator from './components/calculator';
 function App() {
-	return <></>;
+	return (
+		<>
+			<Calculator />
+		</>
+	);
 }
 
 export default App;

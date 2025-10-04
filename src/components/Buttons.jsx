@@ -11,7 +11,7 @@ const Buttons = ({ onNumberClick, onOperatorClick }) => {
 					<Button
 						onClick={() => onNumberClick(number)}
 						key={number}
-						className="number-btn"
+						className="numbers-btn"
 					>
 						{number}
 					</Button>
