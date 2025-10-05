@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Buttons from './Buttons';
 import Screen from './Screen';
 
@@ -72,6 +72,41 @@ const Calculator = () => {
 		setOperator(clickedOp);
 		setWaitingForNewNumber(true);
 	};
+
+	useEffect(() => {
+		// Add the listener when component mounts
+		const handleKeyPress = (event) => {
+			const numbers = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0'];
+			const operators = ['+', '-', 'X', '/', '%'];
+			console.log(event.key);
+			if (numbers.includes(event.key)) {
+				handleNumberClick(event.key);
+			}
+			if (event.key === 'Backspace') {
+				handleNumberClick('⌫');
+			}
+			if (event.key === 'Escape') {
+				handleOperatorClick('AC');
+			}
+
+			if (operators.includes(event.key)) {
+				handleOperatorClick(event.key);
+			}
+			if (event.key === 'Enter') {
+				handleOperatorClick('=');
+			}
+			if (event.key === '*') {
+				handleOperatorClick('X');
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyPress);
+
+		// Cleanup: Remove listener when component unmounts
+		return () => {
+			window.removeEventListener('keydown', handleKeyPress);
+		};
+	}, [handleNumberClick, handleOperatorClick]); // Empty array = only run once
 
 	return (
 		<div className="calculator-container">
