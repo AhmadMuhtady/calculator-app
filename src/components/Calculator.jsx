@@ -44,38 +44,38 @@ const Calculator = () => {
 		}
 
 		if (clickedOp === '=') {
+			let result = 0;
 			switch (operator) {
 				case '+':
-					setCurr((+prevNum + +curNum).toString());
+					result = +prevNum + +curNum;
 					break;
 				case '-':
-					setCurr((+prevNum - +curNum).toString());
+					result = +prevNum - +curNum;
 					break;
 				case 'X':
-					setCurr((+prevNum * +curNum).toString());
+					result = +prevNum * +curNum;
 					break;
 				case '/':
 					if (+curNum === 0) {
-						setCurr('Error..');
+						result = 'Error..';
 						break;
 					} else {
-						setCurr((+prevNum / +curNum).toString());
+						result = +prevNum / +curNum;
 						break;
 					}
 				case '%':
-					setCurr((+prevNum % +curNum).toString());
+					result = +prevNum % +curNum;
 					break;
 				case 'x^y':
-					const result = Math.pow(+prevNum, +curNum);
 					if (isNaN(result)) {
-						setCurr('Error');
+						result = 'Error';
 						break;
 					}
-					setCurr(result.toString());
+					result = result;
 					break;
 			}
 			setWaitingForNewNumber(true);
-			return;
+			return setCurr(result.toString());
 		}
 
 		setPrev(curNum);
