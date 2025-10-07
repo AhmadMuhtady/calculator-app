@@ -55,13 +55,23 @@ const Calculator = () => {
 					setCurr((+prevNum * +curNum).toString());
 					break;
 				case '/':
-					setCurr((+prevNum / +curNum).toString());
-					break;
+					if (+curNum === 0) {
+						setCurr('Error..');
+						break;
+					} else {
+						setCurr((+prevNum / +curNum).toString());
+						break;
+					}
 				case '%':
 					setCurr((+prevNum % +curNum).toString());
 					break;
 				case 'x^y':
-					setCurr(Math.pow(+prevNum, +curNum).toString());
+					const result = Math.pow(+prevNum, +curNum);
+					if (isNaN(result)) {
+						setCurr('Error');
+						break;
+					}
+					setCurr(result.toString());
 					break;
 			}
 			setWaitingForNewNumber(true);
@@ -120,3 +130,5 @@ const Calculator = () => {
 };
 
 export default Calculator;
+
+// need to add continue calculation + the error statement
