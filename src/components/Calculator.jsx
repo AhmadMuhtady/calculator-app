@@ -43,8 +43,16 @@ const Calculator = () => {
 			return;
 		}
 
-		if (clickedOp === '=') {
+		if (prevNum === '') {
+			setPrev(curNum);
+			setOperator(clickedOp);
+			setWaitingForNewNumber(true);
+			return; // stop here so it doesn’t calculate yet
+		}
+
+		if (!waitingForNewNumber && operator) {
 			let result = 0;
+
 			switch (operator) {
 				case '+':
 					result = +prevNum + +curNum;
@@ -56,30 +64,28 @@ const Calculator = () => {
 					result = +prevNum * +curNum;
 					break;
 				case '/':
-					if (+curNum === 0) {
-						result = 'Error..';
-						break;
-					} else {
-						result = +prevNum / +curNum;
-						break;
-					}
+					result = +curNum === 0 ? 'Error' : +prevNum / +curNum;
+					break;
 				case '%':
 					result = +prevNum % +curNum;
 					break;
 				case 'x^y':
-					if (isNaN(result)) {
-						result = 'Error';
-						break;
-					}
-					result = result;
+					result = Math.pow(+prevNum, +curNum);
+					if (isNaN(result)) result = 'Error';
 					break;
 			}
-			setWaitingForNewNumber(true);
-			return setCurr(result.toString());
+
+			setPrev(result.toString());
+			setCurr(result.toString());
 		}
 
-		setPrev(curNum);
-		setOperator(clickedOp);
+		// Handle "=" separately
+		if (clickedOp === '=') {
+			setOperator('');
+		} else {
+			setOperator(clickedOp);
+		}
+
 		setWaitingForNewNumber(true);
 	};
 
