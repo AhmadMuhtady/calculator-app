@@ -1,4 +1,5 @@
 const History = ({ history, show }) => {
+	if (!show) return null;
 	return (
 		<div className={`history-panel ${show ? 'show' : 'hidden'}`}>
 			<h3>History</h3>

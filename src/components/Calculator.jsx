@@ -9,25 +9,44 @@ const Calculator = () => {
 	const [operator, setOperator] = useState('');
 	const [lastOperator, setLastOperator] = useState('');
 	const [lastOperand, setLastOperand] = useState('');
-	const [history, setHistory] = useState([]);
+	const [history, setHistory] = useState(() => {
+		const saved = localStorage.getItem('calcHistory');
+		return saved ? JSON.parse(saved) : [];
+	});
+
 	const [waitingForNewNumber, setWaitingForNewNumber] = useState(false);
 	const [showHistory, setShowHistory] = useState(false); // NEW: toggle history
 
 	const handleNumberClick = (number) => {
+		if (curNum === 'Error') {
+			// Start fresh on number press
+			setCurr(number);
+			setPrev('');
+			setOperator('');
+			setLastOperator('');
+			setLastOperand('');
+			setWaitingForNewNumber(false);
+			return;
+		}
+
 		if (waitingForNewNumber) {
 			setCurr(number);
 			setWaitingForNewNumber(false);
 			return;
 		}
+
 		if (number === '⌫') {
 			setCurr(curNum.length === 1 ? '0' : curNum.slice(0, -1));
 			return;
 		}
+
 		if (number === '.' && curNum.includes('.')) return;
+
 		setCurr(curNum === '0' ? number : curNum + number);
 	};
 
 	const handleOperatorClick = (clickedOp) => {
+		if (curNum === 'Error' && clickedOp !== 'AC') return;
 		if (clickedOp === 'AC') {
 			setPrev('');
 			setCurr('0');
@@ -35,6 +54,7 @@ const Calculator = () => {
 			setLastOperator('');
 			setLastOperand('');
 			setWaitingForNewNumber(false);
+			setHistory([]); // This will also clear localStorage because of the useEffect
 			return;
 		}
 
@@ -135,6 +155,11 @@ const Calculator = () => {
 		return formatted.length > 12 ? formatted.slice(0, 12) + '…' : formatted;
 	};
 
+	// Save history to localStorage whenever it changes
+	useEffect(() => {
+		localStorage.setItem('calcHistory', JSON.stringify(history));
+	}, [history]);
+
 	useEffect(() => {
 		const handleKeyPress = (event) => {
 			const numbers = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0'];
@@ -146,6 +171,7 @@ const Calculator = () => {
 			if (event.key === 'Enter') handleOperatorClick('=');
 			if (event.key === '*') handleOperatorClick('X');
 		};
+
 		window.addEventListener('keydown', handleKeyPress);
 		return () => window.removeEventListener('keydown', handleKeyPress);
 	}, [handleNumberClick, handleOperatorClick]);
