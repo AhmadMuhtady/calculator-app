@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import Buttons from './Buttons';
 import Screen from './Screen';
+import History from './History';
 
 const Calculator = () => {
 	const [prevNum, setPrev] = useState('');
 	const [curNum, setCurr] = useState('0');
 	const [operator, setOperator] = useState('');
+	const [lastOperator, setLastOperator] = useState('');
+	const [lastOperand, setLastOperand] = useState('');
+	const [history, setHistory] = useState([]);
 	const [waitingForNewNumber, setWaitingForNewNumber] = useState(false);
+	const [showHistory, setShowHistory] = useState(false); // NEW: toggle history
 
 	const handleNumberClick = (number) => {
 		if (waitingForNewNumber) {
@@ -14,25 +19,12 @@ const Calculator = () => {
 			setWaitingForNewNumber(false);
 			return;
 		}
-
 		if (number === '⌫') {
-			if (curNum.length === 1) {
-				setCurr('0');
-				return;
-			}
-
-			setCurr(curNum.slice(0, -1));
+			setCurr(curNum.length === 1 ? '0' : curNum.slice(0, -1));
 			return;
 		}
-
-		if (number === '.' && curNum.includes('.')) {
-			return;
-		}
-		if (curNum === '0') {
-			setCurr(number);
-		} else {
-			setCurr(curNum + number);
-		}
+		if (number === '.' && curNum.includes('.')) return;
+		setCurr(curNum === '0' ? number : curNum + number);
 	};
 
 	const handleOperatorClick = (clickedOp) => {
@@ -40,19 +32,22 @@ const Calculator = () => {
 			setPrev('');
 			setCurr('0');
 			setOperator('');
+			setLastOperator('');
+			setLastOperand('');
+			setWaitingForNewNumber(false);
 			return;
 		}
 
 		if (prevNum === '') {
 			setPrev(curNum);
-			setOperator(clickedOp);
+			if (clickedOp !== '=') setOperator(clickedOp);
 			setWaitingForNewNumber(true);
-			return; // stop here so it doesn’t calculate yet
+			return;
 		}
 
-		if (!waitingForNewNumber && operator) {
-			let result = 0;
+		let result = 0;
 
+		if (!waitingForNewNumber && operator) {
 			switch (operator) {
 				case '+':
 					result = +prevNum + +curNum;
@@ -71,70 +66,109 @@ const Calculator = () => {
 					break;
 				case 'x^y':
 					result = Math.pow(+prevNum, +curNum);
-					if (isNaN(result)) result = 'Error';
 					break;
 			}
+			if (isNaN(result)) result = 'Error';
 
+			const equation = `${formatNumber(prevNum)} ${operator} ${formatNumber(
+				curNum
+			)} = ${formatNumber(result)}`;
 			setPrev(result.toString());
 			setCurr(result.toString());
+			setHistory((prev) => [...prev, equation]);
+
+			if (clickedOp === '=') {
+				setLastOperator(operator);
+				setLastOperand(curNum);
+				setOperator('');
+			} else setOperator(clickedOp);
+
+			setWaitingForNewNumber(true);
+			return;
 		}
 
-		// Handle "=" separately
-		if (clickedOp === '=') {
-			setOperator('');
-		} else {
-			setOperator(clickedOp);
+		if (clickedOp === '=' && lastOperator) {
+			switch (lastOperator) {
+				case '+':
+					result = +prevNum + +lastOperand;
+					break;
+				case '-':
+					result = +prevNum - +lastOperand;
+					break;
+				case 'X':
+					result = +prevNum * +lastOperand;
+					break;
+				case '/':
+					result = +lastOperand === 0 ? 'Error' : +prevNum / +lastOperand;
+					break;
+				case '%':
+					result = +prevNum % +lastOperand;
+					break;
+				case 'x^y':
+					result = Math.pow(+prevNum, +lastOperand);
+					break;
+			}
+			if (isNaN(result)) result = 'Error';
+			setPrev(result.toString());
+			setCurr(result.toString());
+
+			const equation = `${formatNumber(prevNum)} ${operator} ${formatNumber(
+				curNum
+			)} = ${formatNumber(result)}`;
+			setHistory((prev) => [...prev, equation]);
+			setWaitingForNewNumber(true);
+			return;
 		}
 
+		if (clickedOp !== '=') setOperator(clickedOp);
 		setWaitingForNewNumber(true);
 	};
 
+	const formatNumber = (num) => {
+		if (num === 'Error') return num;
+		let n = parseFloat(num);
+		if (!Number.isFinite(n)) return 'Error';
+		n = Math.round(n * 1e6) / 1e6;
+		const [integer, decimal] = n.toString().split('.');
+		const formattedInt = Number(integer).toLocaleString();
+		const formatted = decimal ? `${formattedInt}.${decimal}` : formattedInt;
+		return formatted.length > 12 ? formatted.slice(0, 12) + '…' : formatted;
+	};
+
 	useEffect(() => {
-		// Add the listener when component mounts
 		const handleKeyPress = (event) => {
 			const numbers = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0'];
 			const operators = ['+', '-', 'X', '/', '%'];
-			console.log(event.key);
-			if (numbers.includes(event.key)) {
-				handleNumberClick(event.key);
-			}
-			if (event.key === 'Backspace') {
-				handleNumberClick('⌫');
-			}
-			if (event.key === 'Escape') {
-				handleOperatorClick('AC');
-			}
-
-			if (operators.includes(event.key)) {
-				handleOperatorClick(event.key);
-			}
-			if (event.key === 'Enter') {
-				handleOperatorClick('=');
-			}
-			if (event.key === '*') {
-				handleOperatorClick('X');
-			}
+			if (numbers.includes(event.key)) handleNumberClick(event.key);
+			if (event.key === 'Backspace') handleNumberClick('⌫');
+			if (event.key === 'Escape') handleOperatorClick('AC');
+			if (operators.includes(event.key)) handleOperatorClick(event.key);
+			if (event.key === 'Enter') handleOperatorClick('=');
+			if (event.key === '*') handleOperatorClick('X');
 		};
-
 		window.addEventListener('keydown', handleKeyPress);
-
-		// Cleanup: Remove listener when component unmounts
-		return () => {
-			window.removeEventListener('keydown', handleKeyPress);
-		};
-	}, [handleNumberClick, handleOperatorClick]); // Empty array = only run once
+		return () => window.removeEventListener('keydown', handleKeyPress);
+	}, [handleNumberClick, handleOperatorClick]);
 
 	return (
-		<div className="calculator-container">
-			<Screen displayNumber={curNum} />
-			<Buttons
-				onNumberClick={handleNumberClick}
-				onOperatorClick={handleOperatorClick}
-			/>
+		<div className="calculator-wrapper">
+			<div className="calculator-container">
+				<Screen displayNumber={formatNumber(curNum)} />
+				<Buttons
+					onNumberClick={handleNumberClick}
+					onOperatorClick={handleOperatorClick}
+				/>
+				{/* Toggle History Button */}
+				<button
+					className="toggle-history-btn"
+					onClick={() => setShowHistory((prev) => !prev)}
+				>
+					{showHistory ? '✖ Hide History' : '🕘 Show History'}
+				</button>
+			</div>
+			<History history={history} show={showHistory} />
 		</div>
 	);
 };
 
 export default Calculator;
-
-// need to add continue calculation + the error statement
